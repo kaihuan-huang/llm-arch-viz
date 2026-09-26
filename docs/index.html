@@ -1,0 +1,35 @@
+<!doctype html><html lang=en><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>LLM Architecture Cards · Kaihuan Huang</title>
+<style>
+:root{--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--bg:#fff;--card:#f8fafc;--acc:#2563eb}
+@media(prefers-color-scheme:dark){:root{--ink:#e2e8f0;--mut:#94a3b8;--line:#334155;--bg:#0b1220;--card:#111a2e;--acc:#60a5fa}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,sans-serif}
+main{max-width:860px;margin:0 auto;padding:32px 16px}
+h1{font-size:24px;margin:0 0 6px} h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:28px 0 10px}
+p{margin:8px 0} a{color:var(--acc)} .muted{color:var(--mut)}
+table{border-collapse:collapse;width:100%;font-size:14px} th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top} th{color:var(--mut);font-weight:500}
+td.n{font-family:ui-monospace,Menlo,monospace;white-space:nowrap}
+pre{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow:auto;font-size:13px}
+footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:.85rem;color:var(--mut)}
+</style>
+<main>
+<h1>LLM Architecture Cards</h1>
+<p>What is inside an open-weight model, in one page, without downloading its weights. Each card is built from the model\x27s Hugging Face config: the model is instantiated on torch\x27s <code>meta</code> device (shapes only), parameters are counted per module, one decoder layer is drawn as a block diagram with its weight shapes, and the total is cross-checked against the safetensors metadata on the Hub. Memory numbers are arithmetic, not measurements.</p>
+<h2>Cards</h2>
+<table>
+<tr><th>Model</th><th>Attention</th><th>FFN</th><th>Params · bf16</th><th>KV / token</th><th>Hub check</th></tr>
+<tr><td><a href="Qwen__Qwen2.5-7B-Instruct.html">Qwen/Qwen2.5-7B-Instruct</a><br><span class=muted>the local model in the <a href="https://kaihuan-huang.github.io/booking-agent-demo/">Booking Agent Demo</a></span></td><td>GQA 7× · 28 / 4 · head 128</td><td>dense · 18944 · SiLU</td><td class=n>7.62B · 14.2 GiB</td><td class=n>56 KiB</td><td>matches</td></tr>
+<tr><td><a href="openai__privacy-filter.html">openai/privacy-filter</a><br><span class=muted>the browser model in the <a href="https://kaihuan-huang.github.io/pii-detector-demo/">PII Detector Demo</a></span></td><td>GQA 7× · 14 / 2 · head 64 · sliding window 128</td><td>MoE 128 experts · top-4</td><td class=n>1.40B · 2.6 GiB</td><td class=n>4 KiB</td><td>matches</td></tr>
+<tr><td><a href="Qwen__Qwen3.5-9B.html">Qwen/Qwen3.5-9B</a></td><td>GQA 4× · 16 / 4 · head 256 · 24 linear + 8 full</td><td>dense · 12288 · SiLU</td><td class=n>8.95B · 16.7 GiB</td><td class=n>128 KiB</td><td>Hub 9.65B, +0.7B not instantiated (MTP head)</td></tr>
+<tr><td><a href="Qwen__Qwen3.8-27B.html">Qwen/Qwen3.8-27B</a></td><td>GQA 6× · 24 / 4 · head 256 · 48 linear + 16 full</td><td>dense · 17408 · SiLU</td><td class=n>26.9B · 50.1 GiB</td><td class=n>256 KiB</td><td>Hub 27.78B, +0.9B not instantiated</td></tr>
+<tr><td><a href="ibm-granite__granite-embedding-278m-multilingual.html">ibm-granite/granite-embedding-278m-multilingual</a></td><td>encoder, MHA</td><td>dense</td><td class=n>278M · 0.5 GiB</td><td class=n>—</td><td>matches</td></tr>
+</table>
+<h2>Make your own</h2>
+<pre>git clone https://github.com/kaihuan-huang/llm-arch-viz && cd llm-arch-viz
+uv venv .venv --python 3.12 && uv pip install --python .venv/bin/python torch transformers huggingface_hub
+.venv/bin/python llm_arch_viz.py Qwen/Qwen2.5-7B-Instruct            # -> out/Qwen__Qwen2.5-7B-Instruct.html
+.venv/bin/python llm_arch_viz.py Qwen/Qwen2.5-7B-Instruct --json     # facts + memory as JSON, for checking a hypothesis</pre>
+<p class=muted>Why meta device: <code>from_config</code> under <code>torch.device("meta")</code> allocates no storage, so a 27B model takes seconds and zero bytes; only <code>config.json</code> is fetched. The layer diagram orders modules by name (input norm → attention → post-attention norm → MLP), so a model with unusual names may draw out of order; the module tree is exact.</p>
+<footer>
+<a href="https://kaihuan-huang.github.io/refund-agent-demo/">Refund Agent</a> · <a href="https://kaihuan-huang.github.io/booking-agent-demo/">Booking Agent Demo</a> · <a href="https://kaihuan-huang.github.io/pii-detector-demo/">PII Detector Demo</a> · <a href="https://kaihuan-huang.github.io/ledger-demo/">Tamper-Evident Ledger</a> · <a href="https://github.com/kaihuan-huang/llm-arch-viz">Source</a> · <a href="https://github.com/kaihuan-huang">GitHub</a> · <a href="https://linkedin.com/in/kaihuanhuang/">LinkedIn</a>
+</footer>
+</main></html>
